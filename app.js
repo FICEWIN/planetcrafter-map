@@ -48,14 +48,17 @@ let active = RESOURCES.map(r=>r.id);
 function applyFilter(){
   RESOURCES.forEach(r=>{ if(active.includes(r.id)) layers[r.id].addTo(map); else layers[r.id].removeFrom(map); });
 }
-document.getElementById('filters').innerHTML = RESOURCES.map(r=>`
-<label><input type="checkbox" id="f-${r.id}" checked>${r.icon} ${r.name[lang()]||r.name.ar}</label>
+function renderFilters(){
+  document.getElementById('filters').innerHTML = RESOURCES.map(r=>`
+<label><input type="checkbox" id="f-${r.id}" ${active.includes(r.id)?'checked':''}>${r.icon} ${r.name[lang()]||r.name.ar}</label>
 `).join('');
-$$('#filters input').forEach(inp=>{
-  inp.onchange=e=>{ active = $$('#filters input:checked').map(i=>i.id.replace('f-','')); applyFilter(); };
-});
+  $$('#filters input').forEach(inp=>{
+    inp.onchange=e=>{ active = $$('#filters input:checked').map(i=>i.id.replace('f-','')); applyFilter(); };
+  });
+}
 document.getElementById('closeFilter').onclick=()=>{ document.getElementById('filterModal').hidden=true; };
-document.getElementById('filterBtn').onclick=()=>{ document.getElementById('filterModal').hidden=false; };
+document.getElementById('filterBtn').onclick=()=>{ renderFilters(); document.getElementById('filterModal').hidden=false; };
+renderFilters();
 
 const searchInput = document.getElementById('searchInput');
 const results = document.getElementById('searchResults');
@@ -79,13 +82,7 @@ function paintLang(){
   document.documentElement.dir = lang()==='en'?'ltr':'rtl';
   lb.textContent = lang()==='en'?'عربي':'EN';
   lb.setAttribute('aria-label', lang()==='en'?'Switch to Arabic':'التبديل إلى الإنجليزية');
-  document.getElementById('filters').innerHTML = RESOURCES.map(r=>`
-    <label><input type="checkbox" id="f-${r.id}" checked>${r.icon} ${r.name[lang()]||r.name.ar}</label>
-  `).join('');
-  document.querySelectorAll('#filters input').forEach((inp,i)=>{
-    inp.checked = active.includes(RESOURCES[i].id);
-    inp.onchange=e=>{ active = $$('#filters input:checked').map(x=>x.id.replace('f-','')); applyFilter(); };
-  });
+  renderFilters();
   document.querySelector('title').textContent = lang()==='en'?'Planet Crafter Map':'خريطة كوكب الصنعة';
 }
 lb.onclick=()=>{ LANG.cur = lang()==='ar'?'en':'ar'; localStorage.setItem('pc_lang',LANG.cur); paintLang(); };
